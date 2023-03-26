@@ -1,3 +1,6 @@
-theme: jekyll-theme-minimal
+remote_theme: pages-themes/cayman@v0.2.0
 title: Icarus Radio's homepage
 description: Bookmark this to keep an eye on my project updates!
+show_downloads: false
+plugins:
+- jekyll-remote-theme
