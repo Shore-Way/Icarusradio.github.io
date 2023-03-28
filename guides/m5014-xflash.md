@@ -127,4 +127,4 @@ megarec.exe -m0flash 0 ..\lsi\0189.ROM
 待初始化完成后进入系统再次重启，看启动时间是否缩短。
 
 ## 参考
-https://www.servethehome.com/flash-ibm-serveraid-m5014-lsi-92608i-firmware/
+[How to Flash IBM ServeRAID M5014 to LSI 9260-8i Firmware](https://www.servethehome.com/flash-ibm-serveraid-m5014-lsi-92608i-firmware/)
