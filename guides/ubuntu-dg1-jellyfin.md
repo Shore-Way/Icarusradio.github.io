@@ -27,11 +27,60 @@ Intel 官方开源了暂时没有推送至主线内核的更新：[intel-gpu/int
 如果是虚拟机安装，首先请参阅皮蛋熊大佬的教程修改 PVE 内核来支持直通 DG1。设置完成后创建虚拟机，先不要直通 DG1，等设置完成后再直通。
 
 ### 安装 Ubuntu 22.04 LTS
-上述设置完成后，物理机和虚拟机系统安装方式类似，本教程以虚拟机安装为例。
+上述设置完成后，物理机和虚拟机系统安装方式类似，本教程以虚拟机安装为例。推荐安装 server 版本，本教程以 server 版为例，desktop 版本遇到的额外问题后面会单独描述。
 
-推荐安装 server 版本，本教程以 server 版为例，desktop 版本遇到的额外问题后面会单独描述。
+在 PVE 中创建虚拟机，打开高级选项。OS 选择 Ubuntu server 安装镜像，System 里机器选择 q35，BIOS 选择 UEFI 并且取消勾选 `Pre-Enroll keys`，这样安全启动默认是关闭的。最后勾选 `Qemu Agent`，开启后管理虚拟机会更方便。
 
-*待施工*
+![pve-1](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/2c549e24-411e-49ed-91d0-dabd49ea91e2)
+
+硬盘设置合适的大小即可，推荐设置 50-100G。因为 Jellyfin 会在本地缓存转码文件，占用空间较大，所以建议硬盘空间设置大一些。CPU 类型拉至最下面选择 `host`，内存设置合适大小，推荐 8-16G。后面都默认即可，设置完成打开虚拟机，准备安装 Ubuntu server。
+
+![pve-2](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/58ef5624-ff7d-40b1-bd3c-ae65e4c21af8)
+
+开启虚拟机后，进入安装界面，选择第一项 "Try or Install Ubuntu Server"，等待进入安装界面。这个界面下键盘上下左右移动光标位置，回车是确认，空格是勾选和取消勾选。
+
+语言选择 English，键盘选择 English (US)，即都是默认。安装类型选择 `Ubuntu server (minimized)`，因为只是用来运行 Jellyfin，所以可以选择精简系统，如果有其它需求则选择默认的 `Ubuntu server`。
+
+![ubuntu-1](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/590c6f4b-738c-4ccd-8a63-b4aa2186c6df)
+
+设置好网络连接后，建议更换国内的镜像，这里我选择的是国内高校联合搭建的镜像站。也可以选择其他镜像站（比如阿里云，腾讯云等）。
+
+![ubuntu-2](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/51ff670e-6791-4cbf-986d-0d9ee5a426c9)
+
+划分分区时选择 `Use an entire disk` 并取消勾选 LVM，然后点击 Done 确认。弹出对话框选择 Continue 继续。
+
+![ubuntu-3](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/6c25ee57-e6a5-4b3a-8ae3-c9b8f3e4a236)
+
+在这里设置计算机名称，用户名和密码。本教程里将会使用这个创建用户运行 docker 版 Jellyfin。
+
+![ubuntu-4](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/b98a3380-d822-4aaa-97a2-10258f2ee43c)
+
+询问 Ubuntu Pro 时选择不需要，即 "Skip for now"。然后选择 Install OpenSSH server，这样安装完就可以通过 SSH 连接了。机器安装完系统后全程使用 SSH 连接，这步很重要。下一步推荐的软件全都不要选，跳过进入到安装。安装完成后根据提示重启进入系统。
+
+机器开机后，根据 IP 和刚刚创建的用户名以及密码，通过 SSH 登录。进入系统后更新软件，然后再安装一些软件：
+
+```bash
+sudo apt update
+sudo apt upgrade
+sudo apt install qemu-guest-agent dialog bash-completion nano
+```
+
+这里安装的软件的作用：
+1. `qemu-guest-agent` 是对应之前勾选 `Qemu Agent`，如果是物理机则不需要安装。
+2. `dialog` 是安装软件包需要的一个软件，不装不影响系统使用，但是每次 apt 都会提示你装这个。
+3. `bash-completion` 可以增强命令行 Tab 键补全功能，推荐安装。
+4. `nano` 是命令行文本编辑器，也可以选择 `vim` 等其他编辑器，看个人喜好。
+
+如果有其它需求可以再安装别的包，比如教程里使用 docker 运行 Jellyfin 则需要安装 docker。这里参考高校联合镜像站的教程（[Docker CE 软件仓库镜像使用帮助](https://help.mirrors.cernet.edu.cn/docker-ce/)）：
+
+```bash
+export DOWNLOAD_URL="https://mirrors.cernet.edu.cn/docker-ce"
+curl -fsSL https://get.docker.com/ | sudo -E sh
+```
+
+安装完成后关闭机器。物理机拔出安装 U 盘，同时也可以拔出键盘鼠标显示器连接线。虚拟机在硬件设置里删除安装盘。操作完成后再打开机器。
+
+![pve-3](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/5d065ee7-51b0-413f-b116-5ad321162805)
 
 ### 添加 Intel 官方 Ubuntu 仓库
 首先先添加 Intel 的 GPG 密钥：
@@ -79,7 +128,11 @@ intel-i915-dkms | 1.23.6.24.230425.29+i44-1 | https://repositories.intel.com/gpu
 intel-i915-dkms | 1.23.5.19.230406.21.5.17.0.1034+i38-1 | https://repositories.intel.com/gpu/ubuntu jammy/client amd64 Packages
 ```
 
-即最新版本为 `1.24.1.11.240117.14+i16-1`，记住这个版本。打开 [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports) 这个仓库。在上方标签里搜索“24.1.11”找到对应标签并点击。然后点击 `versions` 文件，查看测试对应的内核版本，比如这个标签的文件内容如下：
+即最新版本为 `1.24.1.11.240117.14+i16-1`，记住这个版本。打开 [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports) 这个仓库。在上方标签里搜索 `24.1.11` 找到对应标签并点击。
+
+![github-1](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/389e205f-c59b-483e-ae6b-d9b07c135a66)
+
+然后点击 `versions` 文件，查看测试对应的内核版本，比如这个标签的文件内容如下：
 
 ```
 BACKPORTS_RELEASE_TAG="I915_24.1.11_PSB_240117.14"
@@ -107,7 +160,7 @@ VANILLA_5.4LTS_KERNEL_VERSION="5.4.270"
 sudo apt install linux-image-6.5.0-25-generic linux-headers-6.5.0-25-generic linux-modules-6.5.0-25-generic linux-modules-extra-6.5.0-25-generic
 ```
 
-如果安装的是 server 版本，安装完成后重启即可，因为 server 版默认安装 5.15 内核，启动时会自动选择 6.5 内核进行启动。Desktop 版本默认安装 6.5 内核，可能版本号会比这个大，需要修改 GRUB 来指定启动使用的内核。
+如果安装的是 server 版本，安装完成后重启即可，因为 server 版默认安装 5.15 内核，启动时会自动选择 6.5 内核进行启动。Desktop 版本默认安装 6.5 内核，可能版本号会比这个大，需要修改 GRUB 来指定启动使用的内核。（*待施工：添加修改教程*）
 
 重启完成后输入 `uname -a` 来确认启动内核是否为安装版本。如果出现类似输出，说明启动内核已经更换成功。
 
@@ -121,7 +174,9 @@ Linux jellyfin 6.5.0-25-generic #25~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Feb 2
 sudo apt install intel-i915-dkms intel-fw-gpu
 ```
 
-安装完成后关闭机器。物理机装上 DG1，如果使用核显安装系统，请 BIOS 内选择仅独立显卡工作来关闭核显；如果使用亮机卡安装系统，请拆下亮机卡。虚拟机上直通 DG1，并将显示关闭。
+安装完成后关闭机器。物理机装上 DG1，如果使用核显安装系统，请 BIOS 内选择仅独立显卡工作来关闭核显；如果使用亮机卡安装系统，请拆下亮机卡。请确保不要把 DG1 连上显示器，因为之前某个版本删除了图形输出能力，只支持硬件解码，所以连上也没有用。虚拟机上直通 DG1，并将显示关闭，理由同物理机，PVE 自带的控制台也是看不了显示输出的。
+
+![pve-4](https://github.com/Icarusradio/Icarusradio.github.io/assets/8037656/189459cd-cbed-419a-8d4f-c1e7bfd26464)
 
 操作完成后打开机器，输入 `sudo dmesg | grep -i backport` 来确认内核是否成功安装。如果出现类似如下结果说明安装成功。
 
@@ -137,7 +192,7 @@ sudo apt install intel-i915-dkms intel-fw-gpu
 ```
 
 ### 安装 Jellyfin
-Ubuntu 下安装 Jellyfin 有两种方式，一种是通过 apt 安装官方编译的 deb 包，另一种是使用 docker。这里选择 docker 安装，镜像选择 nyanmisaka 大佬制作的 Jellyfin 中国特供版。
+Ubuntu 下安装 Jellyfin 有两种方式，一种是通过 apt 安装官方编译的 deb 包，另一种是使用 docker。这里选择 docker 安装，镜像选择 nyanmisaka 大佬制作的 [Jellyfin 中国特供版](https://hub.docker.com/r/nyanmisaka/jellyfin)。
 
 首先查看自己用户和用户组的 ID，命令行输入 `id` 指令，查看显示的 `uid` 和 `gid` 的对应值，这里以两个值均是 1000 为例，请修改为自己机器上的数值。
 
@@ -229,7 +284,7 @@ double free or corruption (!prev)
 Aborted (core dumped)
 ```
 
-因为我们还没有替换驱动文件，docker 内自带的文件不支持 DG1。这里我编译好了驱动文件，请去这个仓库(*链接待施工*)的 Releases 中下载。这个仓库我会尽量保持与 Intel 官方最新版本一致。如果想要自行编译，请参阅文章附录的编译教程。
+因为我们还没有替换驱动文件，docker 内自带的文件不支持 DG1。这里我编译好了驱动文件，请去[这个仓库](https://github.com/Icarusradio/intel-media-driver-dg1)的 Releases 中下载。这个仓库我会尽量保持与 Intel 官方最新版本一致。如果想要自行编译，请参阅文章附录的编译教程。
 
 用以下指令将下载的 `iHD_drv_video.so` 替换 docker 内的：
 
@@ -345,6 +400,10 @@ usage: ffmpeg [options] [[infile options] -i infile]... {[outfile options] outfi
 Use -h to get full help or, even better, run 'man ffmpeg'
 ```
 
+安装成功后，重启不会失效。由于之前 docker 运行参数配置了 `--restart=unless-stopped`，所以只要不手动关闭 Jellyfin，开机会自动启动。按照 nyanmisaka 大佬说法目前暂时没有整合驱动的想法，所以每次更新 docker 镜像需要重新替换驱动文件。
+
+> 这个ENABLE_PRODUCTION_KMD之前是和主线内核不兼容的，所以我们暂时没开。
+
 运行测试视频解码，全部统一 1080P 10Mbps 码率。与皮蛋熊大佬的测试（[数据](https://blog.kkk.rs/archives/32)）对比，可以看出基本区别不大，说明成功解码了。
 
 |文件|格式|帧率|帧率（by 皮蛋熊）|
@@ -355,6 +414,21 @@ Use -h to get full help or, even better, run 'man ffmpeg'
 |地球上|8K HEVC|119|122|
 |Meridian|8K AV1|92|93|
 
+## 结语
+这篇教程其实很早就打算写了，但是自己拖延症导致拖了很久，还是向各位抱歉。
+
+教程有什么问题，欢迎去我的 GitHub 仓库 ([Icarusradio/intel-media-driver-dg1](https://github.com/Icarusradio/intel-media-driver-dg1)) 的 Discussions 中提问，我会尽量抽空回复的。也欢迎各位有能力的大佬帮助我回答他人的问题。
+
+最后是对 nyanmisaka 和皮蛋熊两位大佬的感谢。
+
+首先是感谢 nyanmisaka 大佬。他不仅制作了特供版 Jellyfin 造福广大国内用户，他本人也是 Jellyfin 开发人员之一，Jellyfin 官方文档很多地方都是他写的。没有他制作的详细文档，我也没有办法一步步摸索出驱动 DG1 的解决方案。
+
+其次是感谢皮蛋熊大佬。他成功让 DG1 能在 PVE 下直通拓展了这张显卡更多的可玩性，相比他的工作，我做的这些只能说是锦上添花。
+
+欢迎各位点击两位大佬的主页去支持他们：
+- nyanmisaka 的 [GitHub 主页](https://github.com/nyanmisaka)
+- [皮蛋熊的博客](https://blog.kkk.rs/)
+
 ## 附录
 ### 编译 iHD 驱动
 开源驱动位于 [intel/media-driver](https://github.com/intel/media-driver)，这里说明了如何编译支持 DG1 的驱动：
@@ -362,5 +436,49 @@ Use -h to get full help or, even better, run 'man ffmpeg'
 > Media-driver requires special i915 kernel mode driver (KMD) version to support the following platforms since upstream version of i915 KMD does not fully support them(pending patches upstream). To enable these platforms, it requires to specify ENABLE_PRODUCTION_KMD=ON (default: OFF) build configuration option.  
 >   - DG1/SG1
 >   - ATSM
+
+编译驱动其实不限制 Linux 发行版，这里为了方便仍使用 Ubuntu server 22.04 LTS 进行编译。
+
+先点开上述 GitHub 仓库 Releases 下载 Intel 发布的源代码。这里选择最新的 "Intel Media Driver 2024Q1 Release - 24.1.5" 版本，拖至最下方点击 "Source code (tar.gz)" 下载源代码。在发行说明里 Intel 标注了 Gmmlib 和 Libva 需求的版本，因为 Ubuntu 官方仓库软件版本过老，直接安装可能会编译无法通过，有两种解决办法：
+1. 安装 Intel 官方维护仓库版本（推荐）
+2. 手动编译安装 Gmmlib 和 Libva
+
+#### 安装 Intel 官方维护仓库版本
+这个方法相比手动编译安装，可以用包管理器管理安装的软件包。因为我们只需要编译出驱动文件替换 docker 内的即可，系统内其实不需要这些软件包，可以在编译完成后删除节省空间。
+
+按照前面的步骤添加 Intel 官方仓库，然后安装编译所需的软件包：
+
+```bash
+sudo apt install libva-dev libigdgmm-dev autoconf libtool libdrm-dev xorg xorg-dev openbox libx11-dev libgl1-mesa-glx cmake g++
+```
+
+等待安装完后，将之前下载的驱动源代码上传至 Ubuntu 并解压。在同一目录下创建两个文件夹：`build_media` 和 `install_media`：
+
+```bash
+tar xf media-driver-intel-media-24.1.5.tar.gz
+mkdir -p build_media install_media
+```
+
+当前文件夹下应该有三个文件夹：`media-driver-intel-media-24.1.5`, `build_media` 和 `install_media`。然后开始编译：
+
+```bash
+cd build_media
+cmake -DENABLE_PRODUCTION_KMD=ON -DBUILD_CMRTLIB=OFF ../media-driver-intel-media-24.1.5 # 设置编译选项
+make -j"$(nproc)"                                                                       # 利用所有核心编译
+DESTDIR=../install_media make install                                                   # 安装到 install_media 文件夹
+strip ../install_media/usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so                    # 去除多余的 symbol，缩减体积
+```
+
+编译好的驱动文件就在 `install_media/usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so`，按照上面步骤替换 docker 内文件即可。
+
+#### 手动编译安装 Gmmlib 和 Libva
+相比上个方法，这个方法并不推荐，因为手动安装的不方便用包管理器进行管理，只推荐在上个方法失败时使用。由于手动安装会影响包管理器，建议使用虚拟机编译，并在编译之前创建一个快照备份。编译完成后可以通过快照恢复至编译前状态。
+
+*待施工*
+
+### 构建 DKMS 安装包
+之前提过 Intel 官方有三个版本：Rolling, Production 和 Long Term Support (LTS)。但是软件仓库却只有 Rolling 和 LTS，如何安装 Production 版呢？可以通过自行打包 DKMS 安装包来实现。
+
+这里用词使用 “构建” 而不是 “编译”，因为这里只有打包的过程，只是将 Intel 公布的源代码塞入 deb 安装包，并没有编译的过程。
 
 *待施工*
