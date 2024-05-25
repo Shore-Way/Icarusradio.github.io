@@ -284,7 +284,7 @@ double free or corruption (!prev)
 Aborted (core dumped)
 ```
 
-因为我们还没有替换驱动文件，docker 内自带的文件不支持 DG1。这里我编译好了驱动文件，请去[这个仓库](https://github.com/Icarusradio/intel-media-driver-dg1)的 Releases 中下载。这个仓库我会尽量保持与 Intel 官方最新版本一致。如果想要自行编译，请参阅文章附录的编译教程。
+因为我们还没有替换驱动文件，docker 内自带的文件不支持 DG1。这里我编译好了驱动文件，请去[这个仓库](https://github.com/Icarusradio/intel-media-driver-dg1/releases)下载。这个仓库我会尽量保持与 Intel 官方最新版本一致。如果想要自行编译，请参阅文章附录的编译教程。
 
 用以下指令将下载的 `iHD_drv_video.so` 替换 docker 内的：
 
@@ -417,7 +417,7 @@ Use -h to get full help or, even better, run 'man ffmpeg'
 ## 结语
 这篇教程其实很早就打算写了，但是自己拖延症导致拖了很久，还是向各位抱歉。
 
-教程有什么问题，欢迎去我的 GitHub 仓库 ([Icarusradio/intel-media-driver-dg1](https://github.com/Icarusradio/intel-media-driver-dg1)) 的 Discussions 中提问，我会尽量抽空回复的。也欢迎各位有能力的大佬帮助我回答他人的问题。
+教程有什么问题，欢迎去我的 GitHub 仓库 ([Icarusradio/intel-media-driver-dg1](https://github.com/Icarusradio/intel-media-driver-dg1/discussions)) 的 Discussions 中提问，我会尽量抽空回复的。也欢迎各位有能力的大佬帮助我回答他人的问题。
 
 最后是对 nyanmisaka 和皮蛋熊两位大佬的感谢。
 
